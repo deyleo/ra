@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🎯 Duck Hunt AR - Juego Funcionando</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #4CAF50;
+        }
+        
+        /* Panel de control */
+        .control-panel {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            border: 2px solid #4CAF50;
+            min-width: 200px;
+        }
+        
+        .stat {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #4CAF50;
+            font-size: 24px;
+        }
+        
+        /* Botones */
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+        }
+        
+        /* Instrucciones */
+        .instructions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        /* Marcadores */
+        .markers {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .marker-card {
+            text-align: center;
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #4CAF50;
+        }
+        
+        .marker-img {
+            width: 150px;
+            height: 150px;
+            border: 3px solid white;
+            margin: 10px 0;
+        }
+        
+        /* Para móviles */
+        @media (max-width: 768px) {
+            .control-panel {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                bottom: auto;
+            }
+            
+            .instructions {
+                position: relative;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🎯 DUCK HUNT REALIDAD AUMENTADA</h1>
+        <p>Juego AR para celular - ¡Funciona en Replit!</p>
+    </div>
+    
+    <!-- Panel de control -->
+    <div class="control-panel">
+        <h3 style="margin-top: 0; color: #4CAF50;">ESTADÍSTICAS</h3>
+        
+        <div class="stat">
+            <span>Puntos:</span>
+            <span class="stat-value" id="score">0</span>
+        </div>
+        
+        <div class="stat">
+            <span>Patos:</span>
+            <span class="stat-value" id="ducks-left">10</span>
+        </div>
+        
+        <div class="stat">
+            <span>Tiempo:</span>
+            <span class="stat-value" id="time">60s</span>
+        </div>
+        
+        <button class="btn" onclick="startGame()">🎮 INICIAR JUEGO</button>
+        <button class="btn" onclick="resetGame()">🔄 REINICIAR</button>
+    </div>
+    
+    <!-- Contenedor AR -->
+    <div style="width: 100%; height: 70vh; margin-top: 100px;">
+        <a-scene 
+            embedded 
+            arjs="sourceType: webcam; 
+                  detectionMode: mono_and_matrix;
+                  debugUIEnabled: false;"
+            vr-mode-ui="enabled: false"
+            renderer="antialias: true; alpha: true;">
+            
+            <!-- Marcador HIRO (patos) -->
+            <a-marker 
+                id="hiro-marker"
+                type="pattern" 
+                preset="hiro"
+                emitevents="true"
+                cursor="rayOrigin: mouse">
+                
+                <!-- Pato 1 -->
+                <a-entity 
+                    class="duck"
+                    id="duck1"
+                    position="0 0.5 0"
+                    scale="0.4 0.4 0.4">
+                    <!-- Cuerpo -->
+                    <a-sphere 
+                        color="#8B4513" 
+                        radius="0.25"
+                        animation="property: position;
+                                  to: 0 1.0 0;
+                                  dir: alternate;
+                                  dur: 1500;
+                                  loop: true;
+                                  easing: easeInOutSine">
+                    </a-sphere>
+                    <!-- Cabeza -->
+                    <a-sphere 
+                        position="0.35 0.1 0"
+                        color="#D2691E"
+                        radius="0.15">
+                    </a-sphere>
+                    <!-- Pico -->
+                    <a-cone 
+                        position="0.5 0.1 0"
+                        color="#FF8C00"
+                        radius-bottom="0.05"
+                        height="0.15">
+                    </a-cone>
+                </a-entity>
+                
+                <!-- Pato 2 -->
+                <a-entity 
+                    class="duck"
+                    id="duck2"
+                    position="0.7 0.3 0"
+                    scale="0.35 0.35 0.35">
+                    <a-sphere 
+                        color="#A0522D" 
+                        radius="0.22"
+                        animation="property: position;
+                                  to: 0.7 0.9 0;
+                                  dir: alternate;
+                                  dur: 1800;
+                                  loop: true;
+                                  delay: 500">
+                    </a-sphere>
+                    <a-sphere 
+                        position="0.3 0.08 0"
+                        color="#CD853F"
+                        radius="0.12">
+                    </a-sphere>
+                </a-entity>
+            </a-marker>
+            
+            <!-- Cámara -->
+            <a-entity camera></a-entity>
+            
+            <!-- Raycaster para detectar clics -->
+            <a-entity cursor="rayOrigin: mouse" raycaster="objects: .duck"></a-entity>
+        </a-scene>
+    </div>
+    
+    <!-- Instrucciones -->
+    <div class="instructions">
+        <h3>📱 CÓMO JUGAR EN TU CELULAR:</h3>
+        
+        <div class="markers">
+            <div class="marker-card">
+                <p>1. IMPRIME ESTE MARCADOR:</p>
+                <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" 
+                     class="marker-img" 
+                     alt="Marcador Hiro">
+                <br>
+                <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" 
+                   download="marcador-patos.png"
+                   style="color: #4CAF50; font-weight: bold;">
+                   📥 DESCARGAR MARCADOR
+                </a>
+            </div>
+            
+            <div class="marker-card">
+                <p>2. PASOS PARA JUGAR:</p>
+                <ol style="text-align: left; padding-left: 20px;">
+                    <li>Abre esta página en tu celular</li>
+                    <li>Permite el acceso a la cámara</li>
+                    <li>Apunta al marcador impreso</li>
+                    <li>Toca los patos para disparar</li>
+                </ol>
+            </div>
+            
+            <div class="marker-card">
+                <p>3. CONTROLES:</p>
+                <ul style="text-align: left; padding-left: 20px;">
+                    <li>👆 Toca pantalla = Disparar</li>
+                    <li>📱 Mueve cámara = Buscar patos</li>
+                    <li>🎯 Puntos: 100 por pato</li>
+                </ul>
+            </div>
+        </div>
+        
+        <p style="margin-top: 20px; color: #4CAF50; font-weight: bold;">
+            Comparte el enlace de Replit con tus amigos para que jueguen también
+        </p>
+    </div>
+    
+    <script>
+        // Variables del juego
+        let score = 0;
+        let ducksLeft = 10;
+        let timeLeft = 60;
+        let gameActive = false;
+        let timerInterval;
+        
+        // Elementos del DOM
+        const scoreEl = document.getElementById('score');
+        const ducksEl = document.getElementById('ducks-left');
+        const timeEl = document.getElementById('time');
+        
+        // Iniciar juego
+        function startGame() {
+            if (gameActive) return;
+            
+            resetGame();
+            gameActive = true;
+            
+            // Iniciar temporizador
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timeEl.textContent = timeLeft + 's';
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            // Configurar interacción con patos
+            document.querySelectorAll('.duck').forEach(duck => {
+                // Click en PC
+                duck.addEventListener('click', function() {
+                    if (gameActive) shootDuck(this);
+                });
+                
+                // Touch en móvil
+                duck.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    if (gameActive) shootDuck(this);
+                });
+            });
+            
+            // Mostrar mensaje
+            showMessage('¡Juego iniciado! Apunta al marcador HIRO', 'success');
+            
+            console.log("🎮 Juego iniciado");
+        }
+        
+        // Disparar a un pato
+        function shootDuck(duck) {
+            if (!gameActive || ducksLeft <= 0) return;
+            
+            // Efecto visual
+            duck.setAttribute('scale', '0.1 0.1 0.1');
+            duck.setAttribute('opacity', '0.5');
+            
+            // Actualizar puntuación
+            score += 100;
+            ducksLeft--;
+            
+            scoreEl.textContent = score;
+            ducksEl.textContent = ducksLeft;
+            
+            // Vibrar si es móvil
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+            
+            // Sonido (si el navegador lo permite)
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+                audio.play();
+            } catch (e) {
+                // Ignorar error de audio
+            }
+            
+            // Mostrar efecto de puntuación
+            showMessage('+100 Puntos!', 'points');
+            
+            // Si quedan patos, reposicionar después de un tiempo
+            if (ducksLeft > 0) {
+                setTimeout(() => {
+                    duck.setAttribute('scale', '0.4 0.4 0.4');
+                    duck.setAttribute('opacity', '1');
+                    
+                    // Nueva posición aleatoria
+                    const x = (Math.random() - 0.5) * 1.5;
+                    const y = 0.3 + Math.random() * 0.5;
+                    duck.setAttribute('position', `${x} ${y} 0`);
+                }, 800);
+            } else {
+                // No quedan patos
+                setTimeout(() => {
+                    endGame();
+                }, 500);
+            }
+        }
+        
+        // Terminar juego
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            // Mostrar resultado final
+            const accuracy = Math.round((score / 1000) * 100);
+            const message = `🎉 ¡Juego terminado!\nPuntuación: ${score}\nPrecisión: ${accuracy}%\n\nRecarga para jugar de nuevo`;
+            
+            showMessage(message, 'gameover');
+            alert(message);
+            
+            console.log("🏁 Juego terminado. Puntuación:", score);
+        }
+        
+        // Reiniciar juego
+        function resetGame() {
+            score = 0;
+            ducksLeft = 10;
+            timeLeft = 60;
+            gameActive = false;
+            
+            clearInterval(timerInterval);
+            
+            scoreEl.textContent = score;
+            ducksEl.textContent = ducksLeft;
+            timeEl.textContent = timeLeft + 's';
+            
+            // Resetear posición de patos
+            document.querySelectorAll('.duck').forEach((duck, index) => {
+                duck.setAttribute('scale', '0.4 0.4 0.4');
+                duck.setAttribute('opacity', '1');
+                
+                // Posiciones iniciales
+                if (index === 0) {
+                    duck.setAttribute('position', '0 0.5 0');
+                } else {
+                    duck.setAttribute('position', '0.7 0.3 0');
+                }
+            });
+            
+            console.log("🔄 Juego reiniciado");
+        }
+        
+        // Mostrar mensaje temporal
+        function showMessage(text, type) {
+            // Crear elemento de mensaje
+            const message = document.createElement('div');
+            message.textContent = text;
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'points' ? '#FF9800' : '#f44336'};
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(message);
+            
+            // Remover después de 3 segundos
+            setTimeout(() => {
+                message.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(message);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Añadir estilos de animación
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("🚀 Duck Hunt AR cargado en Replit");
+            console.log("📱 Abre esta página en tu celular para jugar");
+            
+            // Detectar dispositivo
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                console.log("📱 Dispositivo móvil detectado");
+                showMessage('¡Bienvenido! Apunta al marcador HIRO', 'success');
+            } else {
+                console.log("💻 PC detectado - Usa clic para disparar");
+                showMessage('Abre en tu celular para la experiencia AR completa', 'points');
+            }
+            
+            // Configurar evento para marcador detectado
+            const marker = document.getElementById('hiro-marker');
+            if (marker) {
+                marker.addEventListener('markerFound', () => {
+                    console.log("✅ Marcador HIRO detectado");
+                    showMessage('¡Patos encontrados! ¡Dispara!', 'success');
+                });
+            }
+        });
+        
+        // Para probar en PC (tecla espacio)
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameActive) {
+                const ducks = document.querySelectorAll('.duck');
+                if (ducks.length > 0) {
+                    const randomDuck = ducks[Math.floor(Math.random() * ducks.length)];
+                    shootDuck(randomDuck);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
